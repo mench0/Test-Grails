@@ -1,6 +1,7 @@
 package test.grails
 
 import grails.gorm.transactions.Transactional
+import grails.validation.ValidationException
 
 import java.awt.print.Book
 
@@ -32,32 +33,29 @@ class StudentController {
         redirect action:"index", method:"GET"
     }
 
-    def edit(Book book) {
-        respond book
+    def edit(Long id) {
+        respond studentService.get(id)
     }
 
-    @Transactional
-    def update(Book book) {
-        if (book == null) {
-            transactionStatus.setRollbackOnly()
+    def update(Student student) {
+        if (student == null) {
             notFound()
             return
         }
 
-        if (book.hasErrors()) {
-            transactionStatus.setRollbackOnly()
-            respond book.errors, view:'edit'
+        try {
+            studentService.save(student)
+        } catch (ValidationException e) {
+            respond student .errors, view:'edit'
             return
         }
 
-        book.save flush:true
-
         request.withFormat {
             form multipartForm {
-                flash.message = message(code: 'default.updated.message', args: [message(code: 'book.label', default: 'Book'), book.id])
-                redirect book
+                flash.message = message(code: 'default.updated.message', args: [message(code: 'student.label', default: 'Student'), student.id])
+                redirect student
             }
-            '*'{ respond book, [status: OK] }
+            '*'{ respond student, [status: OK] }
         }
     }
 }
