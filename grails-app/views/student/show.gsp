@@ -20,7 +20,6 @@
         <div class="message" role="status">${flash.message}</div>
     </g:if>
     <f:display bean="student" except="logo" />
-    <g:img uri="${student?.logo}"/>
     <g:form resource="${this.student}" method="DELETE">
         <fieldset class="buttons">
             <g:link class="edit" action="edit" resource="${this.student}"><g:message code="default.button.edit.label" default="Edit" /></g:link>
