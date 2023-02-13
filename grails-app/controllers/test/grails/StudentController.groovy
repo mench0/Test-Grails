@@ -1,9 +1,10 @@
 package test.grails
 
-import grails.gorm.transactions.Transactional
 import grails.validation.ValidationException
+import test.grails.Student
+import test.grails.StudentService
 
-import java.awt.print.Book
+import static org.springframework.http.HttpStatus.*
 
 class StudentController {
 
@@ -11,8 +12,9 @@ class StudentController {
 
     static allowedMethods = [save: "POST", update: "PUT", delete: "DELETE"]
 
-    def index() {
-        respond studentService.list()
+    def index(Integer max) {
+        params.max = Math.min(max ?: 10, 100)
+        respond studentService.list(params), model:[studentCount: studentService.count()]
     }
 
     def show(Long id) {
@@ -24,13 +26,25 @@ class StudentController {
     }
 
     def save(Student student) {
-        studentService.save(student)
-        redirect action:"index", method:"GET"
-    }
+        if (student == null) {
+            notFound()
+            return
+        }
 
-    def delete(Long id) {
-        studentService.delete(id)
-        redirect action:"index", method:"GET"
+        try {
+            studentService.save(student)
+        } catch (ValidationException e) {
+            respond student.errors, view:'create'
+            return
+        }
+
+        request.withFormat {
+            form multipartForm {
+                flash.message = message(code: 'default.created.message', args: [message(code: 'student.label', default: 'Student'), student.id])
+                redirect student
+            }
+            '*' { respond student, [status: CREATED] }
+        }
     }
 
     def edit(Long id) {
@@ -46,7 +60,7 @@ class StudentController {
         try {
             studentService.save(student)
         } catch (ValidationException e) {
-            respond student .errors, view:'edit'
+            respond student.errors, view:'edit'
             return
         }
 
@@ -56,6 +70,33 @@ class StudentController {
                 redirect student
             }
             '*'{ respond student, [status: OK] }
+        }
+    }
+
+    def delete(Long id) {
+        if (id == null) {
+            notFound()
+            return
+        }
+
+        studentService.delete(id)
+
+        request.withFormat {
+            form multipartForm {
+                flash.message = message(code: 'default.deleted.message', args: [message(code: 'student.label', default: 'Student'), id])
+                redirect action:"index", method:"GET"
+            }
+            '*'{ render status: NO_CONTENT }
+        }
+    }
+
+    protected void notFound() {
+        request.withFormat {
+            form multipartForm {
+                flash.message = message(code: 'default.not.found.message', args: [message(code: 'student.label', default: 'Student'), params.id])
+                redirect action: "index", method: "GET"
+            }
+            '*'{ render status: NOT_FOUND }
         }
     }
 }

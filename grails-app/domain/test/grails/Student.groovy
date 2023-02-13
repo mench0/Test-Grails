@@ -1,6 +1,10 @@
 package test.grails
 
 class Student {
-    String name;
-    Integer age;
+
+    String firstName
+    String lastname
+
+    static hasMany = [tasks: Task]
+
 }

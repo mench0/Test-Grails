@@ -1,34 +1,21 @@
 package test.grails
 
+import grails.gorm.services.Service
 import grails.gorm.transactions.Transactional
 
 import java.awt.print.Book
 
-@Transactional
-class StudentService {
+@Service(Student)
+interface StudentService {
 
-    def get(id){
-        Student.get(id)
-    }
+    Student get(Serializable id)
 
-    def list() {
-        Student.list()
-    }
+    List<Student> list(Map args)
 
-    def save(student){
-        student.save()
-    }
+    Long count()
 
-    def delete(id){
-        Student.get(id).delete()
-    }
+    void delete(Serializable id)
 
-//   пока не сделал
-    def update(id){
-        Student student = Student.get(id)
-        Student.name = student.name
-        Student.name = student.age
-        student.save(id)
-    }
+    Student save(Student student)
 
 }
